@@ -1,3 +1,5 @@
+import sys
+
 from flask import Blueprint, render_template, request
 
 from functions import load_posts, uploads_posts
@@ -20,6 +22,12 @@ def upload():
         file = request.files["picture"]
         filename = file.filename
         content = request.values["content"]
+        if filename.split('.')[-1] not in ['png', 'jpeg', 'jpg']:
+            logging.info('Файл не изображение')
+            return 'Неверный формат файла'
+        if not file or not content:
+            logging.info('Данные не загружены, отсутствует часть данных')
+            return 'Отсутствует часть данных'
         posts = load_posts()
         posts.append({
             'pic': f'/uploads/images/{filename}',
@@ -27,10 +35,10 @@ def upload():
         })
         uploads_posts(posts)
         file.save(f"uploads/images/{filename}")
-        if filename.split('.')[-1] not in ['png', 'jpeg', 'jpg']:
-            logging.info('Файл не изображение')
+
     except FileNotFoundError:
         logging.error('Ошибка при загрузке файла')
         return "<h1> Файл не найден </h1>"
     else:
+
         return render_template("post_uploaded.html", pic=f"/uploads/images/{filename}", content=content)
